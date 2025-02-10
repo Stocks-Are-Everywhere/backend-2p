@@ -24,3 +24,11 @@ spring:
     appKey: ${KOREAINVEST_CLIENT_ID}
     appSecret: ${KOREAINVEST_CLIENT_SECRET}
     accountNo: ""
+
+websocket:
+  server:
+    url: ws://ops.koreainvestment.com:31000/tryitout/H0STASP0
+  manager:
+    url: ws://ops.koreainvestment.com:31000/tryitout/H0STCNT0
+  approval:
+    key: fcaaf57a-00cf-4864-b0ce-6885a9686781
