@@ -11,8 +11,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,15 +65,38 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
 	@Override
 	protected void handleTextMessage(WebSocketSession session, TextMessage message) {
 		String payload = message.getPayload();
-		log.info("Received message: {}", payload);
+		log.info("수신된 메시지: {}", payload);
 
-		// 상세 로깅
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode jsonNode = mapper.readTree(payload);
-			log.debug("Parsed message: {}", jsonNode.toPrettyString());
-		} catch (JsonProcessingException e) {
-			log.error("Failed to parse message", e);
+		// 파이프(|)로 메시지 분리
+		String[] fields = payload.split("\\|");
+
+		// '^'로 구분된 나머지 데이터 파싱
+		if (fields.length >= 3) {
+			String messageType = fields[0];    // 메시지 타입
+			String trId = fields[1];           // 거래 ID
+			String count = fields[2];          // 카운트
+
+			if (fields.length > 3) {
+				String[] stockData = fields[3].split("\\^");
+				processStockData(stockData);
+			}
+		}
+	}
+
+	private void processStockData(String[] stockData) {
+		if (stockData.length > 0) {
+			try {
+				// 주식 데이터 필드 파싱 예시
+				Map<String, String> parsedData = new HashMap<>();
+				parsedData.put("종목코드", stockData[0]);
+				parsedData.put("시간", stockData[1]);
+				parsedData.put("현재가", stockData[2]);
+				// 필요한 필드 추가
+
+				log.debug("파싱된 주식 데이터: {}", parsedData);
+			} catch (Exception e) {
+				log.error("주식 데이터 처리 중 오류 발생", e);
+			}
 		}
 	}
 
