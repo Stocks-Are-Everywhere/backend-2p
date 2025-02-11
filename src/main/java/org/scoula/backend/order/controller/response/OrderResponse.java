@@ -1,4 +1,4 @@
 package org.scoula.backend.order.controller.response;
 
-public class test {
+public record OrderResponse() {
 }
