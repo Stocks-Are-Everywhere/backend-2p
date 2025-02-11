@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.client.WebSocketClient;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -15,20 +14,26 @@ import lombok.extern.slf4j.Slf4j;
 public class WebSocketConnection {
 	private final WebSocketClient client;
 	private final CustomWebSocketHandler handler;
+	private final OrderExecuteService orderExecuteService;
 
 	@Value("${websocket.server.url}")
 	private String wsUrl;
 
-	public WebSocketConnection(WebSocketClient client, CustomWebSocketHandler handler) {
+	public WebSocketConnection(WebSocketClient client, CustomWebSocketHandler handler,
+		OrderExecuteService orderExecuteService) {
 		this.client = client;
 		this.handler = handler;
+		this.orderExecuteService = orderExecuteService;
 	}
 
-	@PostConstruct
+	//@postconstruct
+	//의존성 주입 후 초기화 ->
+	// @PostConstruct
 	public void connect() {
 		try {
 			client.execute(handler, String.valueOf(new URI(wsUrl)));
 			log.info("Websocket 접속: {}", wsUrl);
+			orderExecuteService.processOrderQueue();
 		} catch (URISyntaxException e) {
 			log.error("WebSocket 연결 실패", e);
 		}

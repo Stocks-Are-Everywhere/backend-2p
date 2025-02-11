@@ -31,4 +31,4 @@ websocket:
   manager:
     url: ws://ops.koreainvestment.com:31000/tryitout/H0STCNT0
   approval:
-    key: 003160ff-d7dc-4747-9b95-e4d464e82776
+    key: be4b8de8-34a6-44cb-9112-1baec570c078

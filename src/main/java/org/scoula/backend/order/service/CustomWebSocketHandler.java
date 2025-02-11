@@ -45,7 +45,7 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
 			// Body
 			Map<String, Object> body = new HashMap<>();
 			Map<String, String> input = new HashMap<>();
-			input.put("tr_id", "H0STCNT0");
+			input.put("tr_id", "H0STASP0");
 			input.put("tr_key", "005930");
 			body.put("input", input);
 
