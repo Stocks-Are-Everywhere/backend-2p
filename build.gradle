@@ -38,6 +38,14 @@ dependencies {
 
 //   json parsing
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+
+//   cache
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+//   시스템 측정
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.micrometer:micrometer-core'
 }
 
 tasks.named('test') {

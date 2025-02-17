@@ -31,4 +31,26 @@ websocket:
   manager:
     url: ws://ops.koreainvestment.com:31000/tryitout/H0STCNT0
   approval:
-    key: be4b8de8-34a6-44cb-9112-1baec570c078
+    key: b430c1c0-220c-4076-8cbb-cb30cfb216e7
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  info:
+    env:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+

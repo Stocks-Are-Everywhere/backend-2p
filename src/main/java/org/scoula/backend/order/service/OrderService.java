@@ -4,11 +4,7 @@ import org.scoula.backend.order.domain.Order;
 
 public interface OrderService {
 
-	Order createOrder();
+	void ProcessMarketData(String parsingData);
 
-	boolean validateOrder(Order order);
-
-	Order createExecuteCondition(Order order);
-
-	boolean validateExecuteCondition(Order order);
+	Boolean ProcessOrder(Order order);
 }
