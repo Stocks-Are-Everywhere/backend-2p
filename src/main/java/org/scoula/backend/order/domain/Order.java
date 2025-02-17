@@ -66,6 +66,7 @@ public class Order extends BaseEntity {
 	@Column(nullable = false)
 	private LocalDateTime timestamp;
 
+	// TODO : 연산 로직 교체 고민중
 	public void updateQuantity(int quantity) {
 		this.remainingQuantity -= quantity;
 	}

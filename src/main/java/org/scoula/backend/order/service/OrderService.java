@@ -27,7 +27,7 @@ public class OrderService {
 	private final SimpMessagingTemplate messagingTemplate;
 
 	// 지정가 주문
-	public void placeOrder(OrderRequest request) {
+	public void placeOrder(final OrderRequest request) {
 		final Order order = new OrderDto(request).to();
 		// 주문 처리
 		final OrderBookResponse response = processOrder(order);
@@ -57,7 +57,7 @@ public class OrderService {
 	}
 
 	// 웹소켓 종목별 호가창 생성
-	public OrderBookResponse getOrderBook(String code) {
+	public OrderBookResponse getOrderBook(final String code) {
 		final OrderBookService orderBook = addOrderBook(code);
 		return orderBook.getBook();
 	}

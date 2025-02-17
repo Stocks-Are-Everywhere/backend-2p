@@ -32,8 +32,9 @@ public class OrderBookService {
 		this.companyCode = companyCode;
 	}
 
+	// TODO : 채결 완료된 주문 history 저장 필요
+	// TODO : 채결 기준 (-15% - +15%) 적용 필요
 	public void received(final Order order) {
-		// final Order order = new OrderDto(request).to();
 		if (order.getType() == Type.BUY) {
 			matchBuyOrder(order);
 		} else {
@@ -106,6 +107,7 @@ public class OrderBookService {
 			// existingOrder.setRemainingQuantity(
 			// 		existingOrder.getRemainingQuantity() - matchedQuantity
 			// );
+
 			//수량
 			incomingOrder.updateQuantity(matchedQuantity);
 			existingOrder.updateQuantity(matchedQuantity);
@@ -117,34 +119,13 @@ public class OrderBookService {
 		}
 	}
 
-	// private void excuteTransaction(final Order incomingOrder, final Order existingOrder, final Integer matchedQuantity) {
-	// 	BigDecimal executionPrice = existingOrder.getPrice();
-	// 	Transaction transaction = new Transaction(
-	// 			incomingOrder.getId(),
-	// 			existingOrder.getId(),
-	// 			executionPrice,
-	// 			matchedQuantity,
-	// 			LocalDateTime.now();
-	// 	)
-	// }
-
 	private void addToOrderBook(final TreeMap<BigDecimal, Queue<Order>> orderBook, final Order order) {
 		orderBook.computeIfAbsent(
 				order.getPrice(),
 				k -> new PriorityQueue<>(
 						Comparator.comparing(Order::getTimestamp))
 		).offer(order);
-
-		// orderBook.computeIfAbsent(
-		// 		order.getPrice(),
-		// 		k -> new PriorityQueue<>()
-		// ).offer(order);
 	}
-
-	// // 현재 호가창 스냅샷 생성
-	// public OrderSnapshotResponse getSnapshot() {
-	// 	return new OrderSnapshotResponse(askOrders, bidOrders);
-	// }
 
 	// 종목별 주문장 스냅샷 생성
 	public OrderSnapshotResponse getSnapshot() {
@@ -187,13 +168,7 @@ public class OrderBookService {
 
 	// 종목별 요약 정보 조회
 	public OrderSummaryResponse getSummary() {
-		// log.info(askOrders.toString());
-		// log.info(bidOrders.toString());
-		// OrderSnapshotResponse snapshot = getSnapshot();
-
 		return new OrderSummaryResponse(
-				// snapshot.getMidPrice(),
-				// snapshot.getSpread(),
 				companyCode,
 				getOrderVolumeStats(askOrders),
 				getOrderVolumeStats(bidOrders)
