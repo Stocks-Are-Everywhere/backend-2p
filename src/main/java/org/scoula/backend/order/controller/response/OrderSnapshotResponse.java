@@ -8,7 +8,7 @@ import org.scoula.backend.order.domain.Order;
 
 public record OrderSnapshotResponse(
 		String companyCode,
-		TreeMap<BigDecimal, Queue<Order>> askOrders,
-		TreeMap<BigDecimal, Queue<Order>> bidOrders
+		TreeMap<BigDecimal, Queue<Order>> sellOrders,
+		TreeMap<BigDecimal, Queue<Order>> buyOrders
 ) {
 }

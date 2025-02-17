@@ -9,7 +9,7 @@ import lombok.Builder;
 @Builder
 public record OrderBookResponse(
 		String companyCode,
-		List<PriceLevelDto> askLevels,
-		List<PriceLevelDto> bidLevels
+		List<PriceLevelDto> sellLevels,
+		List<PriceLevelDto> buyLevels
 ) {
 }

@@ -8,6 +8,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class OrderSummaryResponse {
 	private final String companyCode;
-	private final Integer askCount;
-	private final Integer bidCount;
+	private final Integer sellCount;
+	private final Integer buyCount;
 }
