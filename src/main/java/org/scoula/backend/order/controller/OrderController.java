@@ -5,6 +5,7 @@ import org.scoula.backend.order.controller.response.OrderBookResponse;
 import org.scoula.backend.order.controller.response.OrderSnapshotResponse;
 import org.scoula.backend.order.controller.response.OrderSummaryResponse;
 import org.scoula.backend.order.service.OrderService;
+import org.scoula.backend.order.service.exception.MatchingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +24,7 @@ public class OrderController {
 	private final OrderService orderService;
 
 	@PostMapping
-	public ResponseEntity<Void> received(@RequestBody final OrderRequest request) {
+	public ResponseEntity<Void> received(@RequestBody final OrderRequest request) throws MatchingException {
 		orderService.placeOrder(request);
 		return ResponseEntity.ok().build();
 	}

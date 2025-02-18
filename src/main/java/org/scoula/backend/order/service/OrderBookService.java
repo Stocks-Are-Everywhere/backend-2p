@@ -14,8 +14,10 @@ import org.scoula.backend.order.controller.response.OrderSnapshotResponse;
 import org.scoula.backend.order.controller.response.OrderSummaryResponse;
 import org.scoula.backend.order.domain.Order;
 import org.scoula.backend.order.domain.OrderStatus;
+import org.scoula.backend.order.domain.TradeHistory;
 import org.scoula.backend.order.domain.Type;
 import org.scoula.backend.order.dto.PriceLevelDto;
+import org.scoula.backend.order.repository.TradeHistoryRepositoryImpl;
 import org.scoula.backend.order.service.exception.MatchingException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,13 +32,16 @@ public class OrderBookService {
 	// 매수 주문: 높은 가격 우선
 	private final TreeMap<BigDecimal, Queue<Order>> buyOrders = new TreeMap<>(Collections.reverseOrder());
 
-	public OrderBookService(final String companyCode) {
+	private final TradeHistoryRepositoryImpl tradeHistoryRepository;
+
+	public OrderBookService(final String companyCode, TradeHistoryRepositoryImpl tradeHistoryRepository) {
 		this.companyCode = companyCode;
+		this.tradeHistoryRepository = tradeHistoryRepository;
 	}
 
 	// TODO : 채결 완료된 주문 history 저장 필요
 	// TODO : 채결 기준 (-15% - +15%) 적용 필요
-	public void received(final Order order) {
+	public void received(final Order order) throws MatchingException {
 		// 가격이 0인 경우 시장가 주문으로 처리
 		if (order.getStatus() == OrderStatus.MARKET) {
 			if (order.getType() == Type.BUY) {
@@ -93,6 +98,7 @@ public class OrderBookService {
 
 			// 주문 매칭 처리
 			matchOrders(bestBuy.getValue(), sellOrder);
+
 			// 매수 큐가 비었으면 제거
 			if (bestBuy.getValue().isEmpty()) {
 				buyOrders.remove(bestBuy.getKey());
@@ -151,23 +157,24 @@ public class OrderBookService {
 	private void matchOrders(final Queue<Order> existingOrders, final Order incomingOrder) {
 		while (!existingOrders.isEmpty() && incomingOrder.getRemainingQuantity() > 0) {
 			final Order existingOrder = existingOrders.peek();
-
 			final Integer matchedQuantity = Math.min(
 				incomingOrder.getRemainingQuantity(),
 				existingOrder.getRemainingQuantity()
 			);
 
-			// 거래 채결 -> OrderHistory
-			// excuteTransaction(incomingOrder, existingOrder, matchedQuantity);
+			TradeHistory tradeHistory = TradeHistory.builder()
+				// .sellOrderId(existingOrder.getType() == Type.SELL ?
+				// 	existingOrder.getId() : incomingOrder.getId())
+				// .buyOrderId(existingOrder.getType() == Type.BUY ?
+				// 	existingOrder.getId() : incomingOrder.getId())
+				.sellOrderId((long)123)
+				.buyOrderId((long)456)
+				.quantity(matchedQuantity)
+				.price(existingOrder.getPrice().intValue())
+				.build();
 
-			// 수량 업데이트
-			// incomingOrder.setRemainingQuantity(
-			// 		incomingOrder.getRemainingQuantity() - matchedQuantity
-			// );
-			// existingOrder.setRemainingQuantity(
-			// 		existingOrder.getRemainingQuantity() - matchedQuantity
-			// );
-
+			tradeHistoryRepository.save(tradeHistory);
+			log.info("db저장완료");
 			//수량
 			incomingOrder.updateQuantity(matchedQuantity);
 			existingOrder.updateQuantity(matchedQuantity);
