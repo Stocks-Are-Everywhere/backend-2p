@@ -1,5 +1,6 @@
 package org.scoula.backend.order.service;
 
+import java.math.BigDecimal;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.scoula.backend.order.controller.request.OrderRequest;
@@ -8,6 +9,7 @@ import org.scoula.backend.order.controller.response.OrderSnapshotResponse;
 import org.scoula.backend.order.controller.response.OrderSummaryResponse;
 import org.scoula.backend.order.domain.Order;
 import org.scoula.backend.order.dto.OrderDto;
+import org.scoula.backend.order.service.validator.OrderValidator;
 import org.scoula.backend.order.repository.TradeHistoryRepositoryImpl;
 import org.scoula.backend.order.service.exception.MatchingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -29,22 +31,25 @@ public class OrderService {
 
 	// 지정가 주문
 	public void placeOrder(final OrderRequest request) throws MatchingException {
+		// 지정가 주문 가격 견적 유효성 검증
+		final BigDecimal price = request.price();
+		final OrderValidator validator = OrderValidator.getUnitByPrice(price);
+		validator.isValidPrice(price);
+
 		final Order order = new OrderDto(request).to();
+
 		// 주문 처리
-		final OrderBookResponse response = processOrder(order);
-		// WebSocket으로 호가창 업데이트 브로드캐스트
-		broadcastOrderBookUpdate(response.companyCode(), response);
+		processOrder(order);
 	}
 
 	// 주문 처리
-	public OrderBookResponse processOrder(final Order order) throws MatchingException {
+	private void processOrder(final Order order) throws MatchingException {
 		final OrderBookService orderBook = addOrderBook(order.getCompanyCode());
 		orderBook.received(order);
 		final OrderBookResponse response = orderBook.getBook();
 
 		// 웹소켓 보내기
 		broadcastOrderBookUpdate(response.companyCode(), response);
-		return response;
 	}
 
 	// 종목별 주문장 생성, 이미 존재할 경우 반환
@@ -53,7 +58,7 @@ public class OrderService {
 	}
 
 	// 주문 발생 시 호가창 업데이트 브로드캐스트
-	public void broadcastOrderBookUpdate(final String code, final OrderBookResponse orderBook) {
+	private void broadcastOrderBookUpdate(final String code, final OrderBookResponse orderBook) {
 		messagingTemplate.convertAndSend("/topic/orderbook/" + code, orderBook);
 	}
 

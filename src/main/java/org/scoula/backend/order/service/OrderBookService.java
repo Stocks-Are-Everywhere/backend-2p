@@ -60,7 +60,7 @@ public class OrderBookService {
 	}
 
 	private void matchSellOrder(final Order sellOrder) {
-		while (sellOrder.getRemainingQuantity() > 0) {
+		while (sellOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			log.info("매도 메서드 진입");
 			// 매도가보다 높거나 같은 매수 주문 찾기
 			Map.Entry<BigDecimal, Queue<Order>> bestBid = buyOrders.firstEntry();
@@ -108,7 +108,7 @@ public class OrderBookService {
 	}
 
 	private void matchBuyOrder(final Order buyOrder) {
-		while (buyOrder.getRemainingQuantity() > 0) {
+		while (buyOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			log.info("매수 메서드 진입");
 			// 매수가보다 낮거나 같은 매도 주문 찾기
 			Map.Entry<BigDecimal, Queue<Order>> bestAsk = sellOrders.firstEntry();
@@ -155,12 +155,13 @@ public class OrderBookService {
 	}
 
 	private void matchOrders(final Queue<Order> existingOrders, final Order incomingOrder) {
-		while (!existingOrders.isEmpty() && incomingOrder.getRemainingQuantity() > 0) {
+		while (!existingOrders.isEmpty() &&
+				incomingOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			final Order existingOrder = existingOrders.peek();
-			final Integer matchedQuantity = Math.min(
-				incomingOrder.getRemainingQuantity(),
-				existingOrder.getRemainingQuantity()
-			);
+
+			final BigDecimal matchedQuantity = incomingOrder.getRemainingQuantity()
+					.min(existingOrder.getRemainingQuantity());
+
 
 			TradeHistory tradeHistory = TradeHistory.builder()
 				// .sellOrderId(existingOrder.getType() == Type.SELL ?
@@ -180,7 +181,7 @@ public class OrderBookService {
 			existingOrder.updateQuantity(matchedQuantity);
 
 			// 완전 체결된 주문 제거
-			if (existingOrder.getRemainingQuantity() == 0) {
+			if (existingOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
 				existingOrders.poll();
 			}
 		}
@@ -236,10 +237,10 @@ public class OrderBookService {
 			).toList();
 	}
 
-	private Integer calculateTotalQuantity(Queue<Order> orders) {
+	private BigDecimal calculateTotalQuantity(Queue<Order> orders) {
 		return orders.stream()
-			.mapToInt(Order::getRemainingQuantity)
-			.sum();
+				.map(Order::getRemainingQuantity) // remainingQuantity를 스트림으로 변환
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	// 종목별 요약 정보 조회

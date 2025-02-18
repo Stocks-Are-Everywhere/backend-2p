@@ -1,12 +1,12 @@
 package org.scoula.backend.order.service.simulator;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.scoula.backend.order.domain.Order;
+import org.scoula.backend.order.controller.request.OrderRequest;
+import org.scoula.backend.order.domain.OrderStatus;
 import org.scoula.backend.order.domain.Type;
 import org.scoula.backend.order.service.OrderService;
 
@@ -25,8 +25,8 @@ public class MultiOrderSimulator {
 
 	// 시뮬레이션 설정
 	private static final String CODE = "005930"; // 삼성전자
-	private static final BigDecimal BASE_PRICE = new BigDecimal("74000");
-	private static final Integer PRICE_RANGE = 11400; // 기준가 +-1000원
+	private static final BigDecimal BASE_PRICE = new BigDecimal("76000");
+	private static final Integer PRICE_RANGE = 11400 / 100; // 기준가 +-11400원
 	private static final Integer NUMBER_OF_THREADS = 500; // 주문 생성 스레드 수
 	private static final Integer MIN_INTERVAL = 100; // 최소 대기 시간
 	private static final Integer MAX_INTERVAL = 300; // 최대 대기 시간
@@ -42,33 +42,21 @@ public class MultiOrderSimulator {
 		isRunning = true;
 		// 각 사용자별로 주문 생성 스레드 시작
 		for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-			// final String userId = "USER_" + i;
 			orderGeneratorPool.submit(this::generateRandomOrder);
 		}
 	}
 
 	// 랜덤 주문 생성
 	private void generateRandomOrder() {
-		// try {
-		// 	final Order order = createRandomOrder();
-		// 	orderManager.processOrder(order);
-		// 	logOrderBook(order.getCompanyCode());
-		// 	// Thread.sleep(ORDER_INTERVAL + random.nextInt(1000));
-		// 	// 다음 주문까지 대기
-		// 	// Thread.sleep(1);
-		// } catch (Exception e) {
-		// 	log.error("Error generating order", e);
-		// }
-
 		final Random random = new Random();
 		while (isRunning) {
 			try {
 				// 주문 생성 및 처리
-				final Order order = createRandomOrder(random);
-				orderService.processOrder(order);
+				final OrderRequest request = createRandomOrderRequest(random);
+				orderService.placeOrder(request);
 
 				// 랜덤 시간 간격으로 대기
-				final Integer waitTime = random.nextInt(MAX_INTERVAL - MIN_INTERVAL) + MIN_INTERVAL;
+				final int waitTime = random.nextInt(MAX_INTERVAL - MIN_INTERVAL) + MIN_INTERVAL;
 				Thread.sleep(waitTime); // 0.1 - 0.3초 대기
 			} catch (InterruptedException e) {
 				log.info("simulation interrupted");
@@ -88,29 +76,29 @@ public class MultiOrderSimulator {
 		}
 	}
 
-	private Order createRandomOrder(final Random random) {
+	private OrderRequest createRandomOrderRequest(final Random random) {
 		final Type type = random.nextBoolean() ? Type.BUY : Type.SELL;
 		final BigDecimal price = generateRandomPrice(random);
-		final Integer quantity = generateRandomQuantity(random);
+		final BigDecimal quantity = generateRandomQuantity(random);
 
-		return Order.builder()
+		return OrderRequest.builder()
 				.companyCode(CODE)
 				.type(type)
-				.price(price)
 				.totalQuantity(quantity)
 				.remainingQuantity(quantity)
-				.timestamp(LocalDateTime.now())
+				.status(OrderStatus.ACTIVE)
+				.price(price)
+				.accountId(1L)
 				.build();
-
 	}
 
 	private BigDecimal generateRandomPrice(final Random random) {
-		Integer priceOffset = random.nextInt(PRICE_RANGE * 2) - PRICE_RANGE;
-		return BASE_PRICE.add(new BigDecimal(priceOffset));
+		int priceOffset = (random.nextInt(PRICE_RANGE * 2) - PRICE_RANGE) * 100;
+		return BASE_PRICE.add(BigDecimal.valueOf(priceOffset));
 	}
 
-	private Integer generateRandomQuantity(final Random random) {
-		return random.nextInt(1000) + 100; // 100~11000주
+	private BigDecimal generateRandomQuantity(final Random random) {
+		return BigDecimal.valueOf(random.nextInt(1000) + 100); // 100~11000주
 	}
 
 	// 시뮬레이션 중지
