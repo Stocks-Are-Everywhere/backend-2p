@@ -66,11 +66,6 @@ public class Order extends BaseEntity {
 	@Column(nullable = false)
 	private LocalDateTime timestamp;
 
-	// TODO : 연산 로직 교체 고민중
-	// public void updateQuantity(int quantity) {
-	// 	this.remainingQuantity -= quantity;
-	// }
-
 	// BigDecimal는 불변 객체 입니다.
 	public void updateQuantity(final BigDecimal quantity) {
 		this.remainingQuantity = this.remainingQuantity.subtract(quantity);
