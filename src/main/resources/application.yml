@@ -19,8 +19,16 @@ spring:
   logging.level:
     org.hibernate.SQL: debug
     org.hibernate.type: trace
+    # WebSocket 디버그
+    org.springframework.web.socket: DEBUG
 
   ki:
     appKey: ${KOREAINVEST_CLIENT_ID}
     appSecret: ${KOREAINVEST_CLIENT_SECRET}
     accountNo: ""
+
+webSocket:
+  server:
+    websocketKey: ${KOREAINVEST_WEBSOCKET_KEY}
+    url: ${KOREAINVEST_API_URL}
+

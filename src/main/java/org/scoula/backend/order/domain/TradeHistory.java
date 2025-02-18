@@ -20,11 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Slf4j
-public class OrderHistory extends BaseEntity {
+public class TradeHistory extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "order_history_id")
+	@Column(name = "trade_history_id")
 	private Long id;
 
 	@Column(nullable = false)

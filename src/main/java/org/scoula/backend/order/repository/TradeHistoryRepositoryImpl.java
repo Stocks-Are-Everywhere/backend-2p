@@ -6,8 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class OrderHistoryRepositoryImpl {
-
-	private final OrderHistoryJpaRepository orderHistoryJpaRepository;
+public class TradeHistoryRepositoryImpl {
+	private final TradeHistoryJpaRepository tradeHistoryJpaRepository;
 
 }
