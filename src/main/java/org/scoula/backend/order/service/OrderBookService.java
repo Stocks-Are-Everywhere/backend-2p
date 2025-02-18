@@ -16,6 +16,7 @@ import org.scoula.backend.order.domain.Order;
 import org.scoula.backend.order.domain.OrderStatus;
 import org.scoula.backend.order.domain.Type;
 import org.scoula.backend.order.dto.PriceLevelDto;
+import org.scoula.backend.order.service.exception.MatchingException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,24 +77,22 @@ public class OrderBookService {
 		}
 	}
 
-	private void matchMarketSellOrder(final Order sellOrder) {
+	private void matchMarketSellOrder(final Order sellOrder) throws MatchingException {
 		log.info("시장가 매도 메서드 진입");
 		while (sellOrder.getRemainingQuantity() > 0) {
 
 			// 매도가보다 높거나 같은 매수 주문 찾기
 			Map.Entry<BigDecimal, Queue<Order>> bestBuy = buyOrders.firstEntry();
-
 			if (bestBuy == null) {
 				log.info("남은 시장가 매수 삭제");
 				// 매칭되는 매수 주문이 없으면 남은 주문 그냥 삭제
 				// TODO: 이대로 두어도 되나 ?
-				// handleUnmatchedMarketOrder(buyOrder);
-				return;
+				throw new MatchingException("주문 체결 불가 : " + sellOrder.getRemainingQuantity());
 			}
+			// handleUnmatchedMarketOrder(buyOrder);
 
 			// 주문 매칭 처리
 			matchOrders(bestBuy.getValue(), sellOrder);
-
 			// 매수 큐가 비었으면 제거
 			if (bestBuy.getValue().isEmpty()) {
 				buyOrders.remove(bestBuy.getKey());
