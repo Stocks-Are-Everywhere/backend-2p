@@ -1,6 +1,5 @@
 package org.scoula.backend.order.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.scoula.backend.order.controller.request.OrderRequest;
@@ -19,7 +18,7 @@ public record OrderDto(
 				.totalQuantity(request.totalQuantity())
 				.remainingQuantity(request.remainingQuantity())
 				.status(request.status())
-				.price(new BigDecimal(request.price()))
+				.price(request.price())
 				// .account(request.accountId())
 				.timestamp(LocalDateTime.now())
 				.build();

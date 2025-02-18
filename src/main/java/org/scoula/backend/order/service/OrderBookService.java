@@ -42,21 +42,21 @@ public class OrderBookService {
 		}
 	}
 
-	private void matchSellOrder(final Order order) {
-		while (order.getRemainingQuantity() > 0) {
+	private void matchSellOrder(final Order sellOrder) {
+		while (sellOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			log.info("매도 메서드 진입");
 			// 매도가보다 높거나 같은 매수 주문 찾기
 			Map.Entry<BigDecimal, Queue<Order>> bestBid = buyOrders.firstEntry();
 
-			if (bestBid == null || bestBid.getKey().compareTo(order.getPrice()) < 0) {
+			if (bestBid == null || bestBid.getKey().compareTo(sellOrder.getPrice()) < 0) {
 				// 매칭되는 매수 주문이 없으면 주문장에 추가
 				log.info("매도 초기값 할당 조건문 진입");
-				addToOrderBook(sellOrders, order);
+				addToOrderBook(sellOrders, sellOrder);
 				break;
 			}
 
 			// 주문 매칭 처리
-			matchOrders(bestBid.getValue(), order);
+			matchOrders(bestBid.getValue(), sellOrder);
 
 			// 매수 큐가 비었으면 제거
 			if (bestBid.getValue().isEmpty()) {
@@ -66,7 +66,7 @@ public class OrderBookService {
 	}
 
 	private void matchBuyOrder(final Order buyOrder) {
-		while (buyOrder.getRemainingQuantity() > 0) {
+		while (buyOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			log.info("매수 메서드 진입");
 			// 매수가보다 낮거나 같은 매도 주문 찾기
 			Map.Entry<BigDecimal, Queue<Order>> bestAsk = sellOrders.firstEntry();
@@ -89,13 +89,12 @@ public class OrderBookService {
 	}
 
 	private void matchOrders(final Queue<Order> existingOrders, final Order incomingOrder) {
-		while (!existingOrders.isEmpty() && incomingOrder.getRemainingQuantity() > 0) {
+		while (!existingOrders.isEmpty() &&
+				incomingOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			final Order existingOrder = existingOrders.peek();
 
-			final Integer matchedQuantity = Math.min(
-					incomingOrder.getRemainingQuantity(),
-					existingOrder.getRemainingQuantity()
-			);
+			final BigDecimal matchedQuantity = incomingOrder.getRemainingQuantity()
+					.min(existingOrder.getRemainingQuantity());
 
 			// 거래 채결 -> OrderHistory
 			// excuteTransaction(incomingOrder, existingOrder, matchedQuantity);
@@ -113,7 +112,7 @@ public class OrderBookService {
 			existingOrder.updateQuantity(matchedQuantity);
 
 			// 완전 체결된 주문 제거
-			if (existingOrder.getRemainingQuantity() == 0) {
+			if (existingOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) == 0) {
 				existingOrders.poll();
 			}
 		}
@@ -160,10 +159,10 @@ public class OrderBookService {
 				).toList();
 	}
 
-	private Integer calculateTotalQuantity(Queue<Order> orders) {
+	private BigDecimal calculateTotalQuantity(Queue<Order> orders) {
 		return orders.stream()
-				.mapToInt(Order::getRemainingQuantity)
-				.sum();
+				.map(Order::getRemainingQuantity) // remainingQuantity를 스트림으로 변환
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	// 종목별 요약 정보 조회

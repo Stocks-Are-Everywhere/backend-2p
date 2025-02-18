@@ -46,17 +46,17 @@ public class Order extends BaseEntity {
 	@Column(nullable = false)
 	private Type type;
 
-	@Column(nullable = false)
-	private Integer totalQuantity;
+	@Column(nullable = false, precision = 10, scale = 0)
+	private BigDecimal totalQuantity;
 
-	@Column(nullable = false)
-	private Integer remainingQuantity;
+	@Column(nullable = false, precision = 10, scale = 0)
+	private BigDecimal remainingQuantity;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private OrderStatus status;
 
-	@Column(nullable = false)
+	@Column(nullable = false, precision = 10, scale = 0)
 	private BigDecimal price;
 
 	@ManyToOne(fetch = LAZY)
@@ -67,7 +67,12 @@ public class Order extends BaseEntity {
 	private LocalDateTime timestamp;
 
 	// TODO : 연산 로직 교체 고민중
-	public void updateQuantity(int quantity) {
-		this.remainingQuantity -= quantity;
+	// public void updateQuantity(int quantity) {
+	// 	this.remainingQuantity -= quantity;
+	// }
+
+	// BigDecimal는 불변 객체 입니다.
+	public void updateQuantity(final BigDecimal quantity) {
+		this.remainingQuantity = this.remainingQuantity.subtract(quantity);
 	}
 }
