@@ -39,7 +39,6 @@ public class OrderBookService {
 		this.tradeHistoryRepository = tradeHistoryRepository;
 	}
 
-	// TODO : 채결 완료된 주문 history 저장 필요
 	// TODO : 채결 기준 (-15% - +15%) 적용 필요
 	public void received(final Order order) throws MatchingException {
 		// 가격이 0인 경우 시장가 주문으로 처리
@@ -82,9 +81,10 @@ public class OrderBookService {
 		}
 	}
 
+	// TODO : 메서드에서 던지는 throws 제거 고민
 	private void matchMarketSellOrder(final Order sellOrder) throws MatchingException {
 		log.info("시장가 매도 메서드 진입");
-		while (sellOrder.getRemainingQuantity() > 0) {
+		while (sellOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 
 			// 매도가보다 높거나 같은 매수 주문 찾기
 			Map.Entry<BigDecimal, Queue<Order>> bestBuy = buyOrders.firstEntry();
@@ -131,7 +131,7 @@ public class OrderBookService {
 
 	private void matchMarketBuyOrder(final Order buyOrder) {
 		log.info("시장가 매수 메서드 진입");
-		while (buyOrder.getRemainingQuantity() > 0) {
+		while (buyOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			// 매수가보다 낮거나 같은 매도 주문 찾기
 			Map.Entry<BigDecimal, Queue<Order>> bestSell = sellOrders.firstEntry();
 
@@ -162,17 +162,16 @@ public class OrderBookService {
 			final BigDecimal matchedQuantity = incomingOrder.getRemainingQuantity()
 					.min(existingOrder.getRemainingQuantity());
 
-
 			TradeHistory tradeHistory = TradeHistory.builder()
-				// .sellOrderId(existingOrder.getType() == Type.SELL ?
-				// 	existingOrder.getId() : incomingOrder.getId())
-				// .buyOrderId(existingOrder.getType() == Type.BUY ?
-				// 	existingOrder.getId() : incomingOrder.getId())
-				.sellOrderId((long)123)
-				.buyOrderId((long)456)
-				.quantity(matchedQuantity)
-				.price(existingOrder.getPrice().intValue())
-				.build();
+					// .sellOrderId(existingOrder.getType() == Type.SELL ?
+					// 	existingOrder.getId() : incomingOrder.getId())
+					// .buyOrderId(existingOrder.getType() == Type.BUY ?
+					// 	existingOrder.getId() : incomingOrder.getId())
+					.sellOrderId((long)123)
+					.buyOrderId((long)456)
+					.quantity(matchedQuantity.intValue()) // TODO : BigDecimal 반영 필요
+					.price(existingOrder.getPrice().intValue())
+					.build();
 
 			tradeHistoryRepository.save(tradeHistory);
 			log.info("db저장완료");
@@ -198,9 +197,9 @@ public class OrderBookService {
 		}
 
 		orderBook.computeIfAbsent(
-			order.getPrice(),
-			k -> new PriorityQueue<>(
-				Comparator.comparing(Order::getTimestamp))
+				order.getPrice(),
+				k -> new PriorityQueue<>(
+						Comparator.comparing(Order::getTimestamp))
 		).offer(order);
 	}
 
@@ -212,29 +211,29 @@ public class OrderBookService {
 	// 호가창 생성
 	public OrderBookResponse getBook() {
 		return OrderBookResponse.builder()
-			.companyCode(companyCode)
-			.sellLevels(createAskLevels())
-			.buyLevels(createBidLevels())
-			.build();
+				.companyCode(companyCode)
+				.sellLevels(createAskLevels())
+				.buyLevels(createBidLevels())
+				.build();
 	}
 
 	// 매도 호가창 정보
 	private List<PriceLevelDto> createAskLevels() {
 		return this.sellOrders.entrySet().stream()
-			.limit(5)
-			.sorted(Map.Entry.<BigDecimal, Queue<Order>>comparingByKey().reversed()) // 역순 정렬
-			.map(entry -> new PriceLevelDto(
-				entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
-			).toList();
+				.limit(5)
+				.sorted(Map.Entry.<BigDecimal, Queue<Order>>comparingByKey().reversed()) // 역순 정렬
+				.map(entry -> new PriceLevelDto(
+						entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
+				).toList();
 	}
 
 	// 매수 호가창 정보
 	private List<PriceLevelDto> createBidLevels() {
 		return this.buyOrders.entrySet().stream()
-			.limit(5)
-			.map(entry -> new PriceLevelDto(
-				entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
-			).toList();
+				.limit(5)
+				.map(entry -> new PriceLevelDto(
+						entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
+				).toList();
 	}
 
 	private BigDecimal calculateTotalQuantity(Queue<Order> orders) {
@@ -246,9 +245,9 @@ public class OrderBookService {
 	// 종목별 요약 정보 조회
 	public OrderSummaryResponse getSummary() {
 		return new OrderSummaryResponse(
-			companyCode,
-			getOrderVolumeStats(sellOrders),
-			getOrderVolumeStats(buyOrders)
+				companyCode,
+				getOrderVolumeStats(sellOrders),
+				getOrderVolumeStats(buyOrders)
 		);
 	}
 
