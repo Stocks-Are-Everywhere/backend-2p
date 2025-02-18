@@ -8,6 +8,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.scoula.backend.order.domain.Order;
+import org.scoula.backend.order.domain.OrderStatus;
 import org.scoula.backend.order.domain.Type;
 import org.scoula.backend.order.service.OrderService;
 
@@ -34,10 +35,10 @@ public class SingleOrderSimulator {
 	// 시뮬레이션 시작
 	public void startSimulation() {
 		executor.scheduleAtFixedRate(
-				this::generateRandomOrder,
-				0,
-				ORDER_INTERVAL,
-				TimeUnit.MILLISECONDS
+			this::generateRandomOrder,
+			0,
+			ORDER_INTERVAL,
+			TimeUnit.MILLISECONDS
 		);
 	}
 
@@ -56,15 +57,17 @@ public class SingleOrderSimulator {
 		final Type type = random.nextBoolean() ? Type.BUY : Type.SELL;
 		final BigDecimal price = generateRandomPrice();
 		final Integer quantity = generateRandomQuantity();
+		final OrderStatus orderStatus = random.nextBoolean() ? OrderStatus.ACTIVE : OrderStatus.MARKET;
 
 		return Order.builder()
-				.companyCode(CODE)
-				.type(type)
-				.price(price)
-				.totalQuantity(quantity)
-				.remainingQuantity(quantity)
-				.timestamp(LocalDateTime.now())
-				.build();
+			.companyCode(CODE)
+			.type(type)
+			.price(price)
+			.totalQuantity(quantity)
+			.status(orderStatus)
+			.remainingQuantity(quantity)
+			.timestamp(LocalDateTime.now())
+			.build();
 
 	}
 
@@ -81,5 +84,5 @@ public class SingleOrderSimulator {
 	public void stopSimulation() {
 		executor.shutdown();
 	}
-	
+
 }
