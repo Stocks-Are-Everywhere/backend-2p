@@ -12,12 +12,11 @@ import java.util.TreeMap;
 import org.scoula.backend.order.controller.response.OrderBookResponse;
 import org.scoula.backend.order.controller.response.OrderSnapshotResponse;
 import org.scoula.backend.order.controller.response.OrderSummaryResponse;
+import org.scoula.backend.order.controller.response.TradeHistoryResponse;
 import org.scoula.backend.order.domain.Order;
 import org.scoula.backend.order.domain.OrderStatus;
-import org.scoula.backend.order.domain.TradeHistory;
 import org.scoula.backend.order.domain.Type;
 import org.scoula.backend.order.dto.PriceLevelDto;
-import org.scoula.backend.order.repository.TradeHistoryRepositoryImpl;
 import org.scoula.backend.order.service.exception.MatchingException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +31,11 @@ public class OrderBookService {
 	// 매수 주문: 높은 가격 우선
 	private final TreeMap<BigDecimal, Queue<Order>> buyOrders = new TreeMap<>(Collections.reverseOrder());
 
-	private final TradeHistoryRepositoryImpl tradeHistoryRepository;
+	private final TradeHistoryService tradeHistoryService;
 
-	public OrderBookService(final String companyCode, TradeHistoryRepositoryImpl tradeHistoryRepository) {
+	public OrderBookService(final String companyCode, TradeHistoryService tradeHistoryService) {
 		this.companyCode = companyCode;
-		this.tradeHistoryRepository = tradeHistoryRepository;
+		this.tradeHistoryService = tradeHistoryService;
 	}
 
 	// TODO : 채결 기준 (-15% - +15%) 적용 필요
@@ -173,7 +172,7 @@ public class OrderBookService {
 					.price(existingOrder.getPrice().intValue())
 					.build();
 
-			tradeHistoryRepository.save(tradeHistory);
+			tradeHistoryService.saveTradeHistory(tradeHistory);
 			log.info("db저장완료");
 			//수량
 			incomingOrder.updateQuantity(matchedQuantity);

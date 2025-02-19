@@ -1,9 +1,12 @@
 package org.scoula.backend.order.controller;
 
+import java.util.List;
+
 import org.scoula.backend.order.controller.request.OrderRequest;
 import org.scoula.backend.order.controller.response.OrderBookResponse;
 import org.scoula.backend.order.controller.response.OrderSnapshotResponse;
 import org.scoula.backend.order.controller.response.OrderSummaryResponse;
+import org.scoula.backend.order.controller.response.TradeHistoryResponse;
 import org.scoula.backend.order.service.OrderService;
 import org.scoula.backend.order.service.exception.MatchingException;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +48,12 @@ public class OrderController {
 	@GetMapping("/summary")
 	public ResponseEntity<OrderSummaryResponse> getSummary(@RequestParam("code") final String companyCode) {
 		return ResponseEntity.ok(orderService.getSummary(companyCode));
+	}
+
+	// trade HISTORY 받기
+	@GetMapping("/tradehistory")
+	public ResponseEntity<List<TradeHistoryResponse>> getTradeHistory() {
+		return ResponseEntity.ok(orderService.getTradeHistory());
 	}
 
 }
