@@ -80,13 +80,13 @@ public class MultiOrderSimulator {
 		final Type type = random.nextBoolean() ? Type.BUY : Type.SELL;
 		final BigDecimal price = generateRandomPrice(random);
 		final BigDecimal quantity = generateRandomQuantity(random);
-
+		final OrderStatus orderStatus = random.nextBoolean() ? OrderStatus.ACTIVE : OrderStatus.MARKET;
 		return OrderRequest.builder()
 				.companyCode(CODE)
 				.type(type)
 				.totalQuantity(quantity)
 				.remainingQuantity(quantity)
-				.status(OrderStatus.ACTIVE)
+				.status(orderStatus)
 				.price(price)
 				.accountId(1L)
 				.build();

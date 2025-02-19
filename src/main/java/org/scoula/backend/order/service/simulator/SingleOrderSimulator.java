@@ -7,7 +7,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.scoula.backend.order.controller.request.OrderRequest;
-import org.scoula.backend.order.domain.Order;
 import org.scoula.backend.order.domain.OrderStatus;
 import org.scoula.backend.order.domain.Type;
 import org.scoula.backend.order.service.OrderService;
@@ -35,10 +34,10 @@ public class SingleOrderSimulator {
 	// 시뮬레이션 시작
 	public void startSimulation() {
 		executor.scheduleAtFixedRate(
-			this::generateRandomOrder,
-			0,
-			ORDER_INTERVAL,
-			TimeUnit.MILLISECONDS
+				this::generateRandomOrder,
+				0,
+				ORDER_INTERVAL,
+				TimeUnit.MILLISECONDS
 		);
 	}
 
@@ -59,7 +58,7 @@ public class SingleOrderSimulator {
 		final Type type = random.nextBoolean() ? Type.BUY : Type.SELL;
 		final BigDecimal price = generateRandomPrice();
 		final BigDecimal quantity = generateRandomQuantity();
-    final OrderStatus orderStatus = random.nextBoolean() ? OrderStatus.ACTIVE : OrderStatus.MARKET;
+		final OrderStatus orderStatus = random.nextBoolean() ? OrderStatus.ACTIVE : OrderStatus.MARKET;
 		return OrderRequest.builder()
 				.companyCode(CODE)
 				.type(type)
