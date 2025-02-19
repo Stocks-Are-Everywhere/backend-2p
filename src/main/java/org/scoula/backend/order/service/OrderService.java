@@ -1,14 +1,15 @@
 package org.scoula.backend.order.service;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.scoula.backend.order.controller.request.OrderRequest;
 import org.scoula.backend.order.controller.response.OrderBookResponse;
 import org.scoula.backend.order.controller.response.OrderSnapshotResponse;
 import org.scoula.backend.order.controller.response.OrderSummaryResponse;
+import org.scoula.backend.order.controller.response.TradeHistoryResponse;
 import org.scoula.backend.order.domain.Order;
 import org.scoula.backend.order.dto.OrderDto;
-import org.scoula.backend.order.repository.TradeHistoryRepositoryImpl;
 import org.scoula.backend.order.service.exception.MatchingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,8 @@ public class OrderService {
 	// 종목 코드를 키로 하는 주문들
 	private final ConcurrentHashMap<String, OrderBookService> orderBooks = new ConcurrentHashMap<>();
 
-	private final TradeHistoryRepositoryImpl tradeHistoryRepository;
 	private final SimpMessagingTemplate messagingTemplate;
+	private final TradeHistoryService tradeHistoryService;
 
 	// 지정가 주문
 	public void placeOrder(final OrderRequest request) throws MatchingException {
@@ -49,7 +50,7 @@ public class OrderService {
 
 	// 종목별 주문장 생성, 이미 존재할 경우 반환
 	public OrderBookService addOrderBook(final String companyCode) {
-		return orderBooks.computeIfAbsent(companyCode, k -> new OrderBookService(companyCode, tradeHistoryRepository));
+		return orderBooks.computeIfAbsent(companyCode, k -> new OrderBookService(companyCode, tradeHistoryService));
 	}
 
 	// 주문 발생 시 호가창 업데이트 브로드캐스트
@@ -79,6 +80,10 @@ public class OrderService {
 	public OrderSummaryResponse getSummary(final String companyCode) {
 		final OrderBookService orderBook = addOrderBook(companyCode);
 		return orderBook.getSummary();
+	}
+
+	public List<TradeHistoryResponse> getTradeHistory() {
+		return tradeHistoryService.getTradeHistory();
 	}
 
 }
