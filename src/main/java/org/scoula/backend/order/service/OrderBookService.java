@@ -62,9 +62,9 @@ public class OrderBookService {
 		while (sellOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			log.info("매도 메서드 진입");
 			// 매도가보다 높거나 같은 매수 주문 찾기
-			Map.Entry<BigDecimal, Queue<Order>> bestBid = buyOrders.firstEntry();
+			Map.Entry<BigDecimal, Queue<Order>> bestBuy = buyOrders.firstEntry();
 
-			if (bestBid == null || bestBid.getKey().compareTo(sellOrder.getPrice()) < 0) {
+			if (bestBuy == null || bestBuy.getKey().compareTo(sellOrder.getPrice()) < 0) {
 				// 매칭되는 매수 주문이 없으면 주문장에 추가
 				log.info("매도 초기값 할당 조건문 진입");
 				addToOrderBook(sellOrders, sellOrder);
@@ -72,11 +72,11 @@ public class OrderBookService {
 			}
 
 			// 주문 매칭 처리
-			matchOrders(bestBid.getValue(), sellOrder);
+			matchOrders(bestBuy.getValue(), sellOrder);
 
 			// 매수 큐가 비었으면 제거
-			if (bestBid.getValue().isEmpty()) {
-				buyOrders.remove(bestBid.getKey());
+			if (bestBuy.getValue().isEmpty()) {
+				buyOrders.remove(bestBuy.getKey());
 			}
 		}
 	}
@@ -111,25 +111,25 @@ public class OrderBookService {
 		while (buyOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			log.info("매수 메서드 진입");
 			// 매수가보다 낮거나 같은 매도 주문 찾기
-			Map.Entry<BigDecimal, Queue<Order>> bestAsk = sellOrders.firstEntry();
+			Map.Entry<BigDecimal, Queue<Order>> bestSell = sellOrders.firstEntry();
 
-			if (bestAsk == null || bestAsk.getKey().compareTo(buyOrder.getPrice()) > 0) {
+			if (bestSell == null || bestSell.getKey().compareTo(buyOrder.getPrice()) > 0) {
 				log.info("매수 초기값 할당 조건문 진입");
-				addToOrderBook(sellOrders, buyOrder);
+				addToOrderBook(buyOrders, buyOrder);
 				break;
 			}
 
 			// 주문 매칭 처리
-			matchOrders(bestAsk.getValue(), buyOrder);
+			matchOrders(bestSell.getValue(), buyOrder);
 
 			// 매수 큐가 비었으면 제거
-			if (bestAsk.getValue().isEmpty()) {
-				sellOrders.remove(bestAsk.getKey());
+			if (bestSell.getValue().isEmpty()) {
+				sellOrders.remove(bestSell.getKey());
 			}
 		}
 	}
 
-	private void matchMarketBuyOrder(final Order buyOrder) {
+	private void matchMarketBuyOrder(final Order buyOrder) throws MatchingException {
 		log.info("시장가 매수 메서드 진입");
 		while (buyOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			// 매수가보다 낮거나 같은 매도 주문 찾기
@@ -139,9 +139,9 @@ public class OrderBookService {
 				log.info("남은 시장가 매도 삭제");
 				// 매칭되는 매도 주문이 없으면 남은 주문 그냥 삭제
 				// TODO: 이대로 두어도 되나 ?
-				// handleUnmatchedMarketOrder(buyOrder);
-				return;
+				throw new MatchingException("주문 체결 불가 : " + buyOrder.getRemainingQuantity());
 			}
+			// handleUnmatchedMarketOrder(buyOrder);
 
 			// 주문 매칭 처리
 			matchOrders(bestSell.getValue(), buyOrder);
