@@ -155,22 +155,22 @@ public class OrderBookService {
 
 	private void matchOrders(final Queue<Order> existingOrders, final Order incomingOrder) {
 		while (!existingOrders.isEmpty() &&
-				incomingOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
+			incomingOrder.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
 			final Order existingOrder = existingOrders.peek();
 
 			final BigDecimal matchedQuantity = incomingOrder.getRemainingQuantity()
-					.min(existingOrder.getRemainingQuantity());
+				.min(existingOrder.getRemainingQuantity());
 
-			TradeHistory tradeHistory = TradeHistory.builder()
-					// .sellOrderId(existingOrder.getType() == Type.SELL ?
-					// 	existingOrder.getId() : incomingOrder.getId())
-					// .buyOrderId(existingOrder.getType() == Type.BUY ?
-					// 	existingOrder.getId() : incomingOrder.getId())
-					.sellOrderId((long)123)
-					.buyOrderId((long)456)
-					.quantity(matchedQuantity.intValue()) // TODO : BigDecimal 반영 필요
-					.price(existingOrder.getPrice().intValue())
-					.build();
+			TradeHistoryResponse tradeHistory = TradeHistoryResponse.builder()
+				// .sellOrderId(existingOrder.getType() == Type.SELL ?
+				// 	existingOrder.getId() : incomingOrder.getId())
+				// .buyOrderId(existingOrder.getType() == Type.BUY ?
+				// 	existingOrder.getId() : incomingOrder.getId())
+				.sellOrderId((long)123)
+				.buyOrderId((long)456)
+				.quantitiy(matchedQuantity.intValue()) // TODO : BigDecimal 반영 필요
+				.price(existingOrder.getPrice().intValue())
+				.build();
 
 			tradeHistoryService.saveTradeHistory(tradeHistory);
 			log.info("db저장완료");
@@ -196,9 +196,9 @@ public class OrderBookService {
 		}
 
 		orderBook.computeIfAbsent(
-				order.getPrice(),
-				k -> new PriorityQueue<>(
-						Comparator.comparing(Order::getTimestamp))
+			order.getPrice(),
+			k -> new PriorityQueue<>(
+				Comparator.comparing(Order::getTimestamp))
 		).offer(order);
 	}
 
@@ -210,43 +210,43 @@ public class OrderBookService {
 	// 호가창 생성
 	public OrderBookResponse getBook() {
 		return OrderBookResponse.builder()
-				.companyCode(companyCode)
-				.sellLevels(createAskLevels())
-				.buyLevels(createBidLevels())
-				.build();
+			.companyCode(companyCode)
+			.sellLevels(createAskLevels())
+			.buyLevels(createBidLevels())
+			.build();
 	}
 
 	// 매도 호가창 정보
 	private List<PriceLevelDto> createAskLevels() {
 		return this.sellOrders.entrySet().stream()
-				.limit(5)
-				.sorted(Map.Entry.<BigDecimal, Queue<Order>>comparingByKey().reversed()) // 역순 정렬
-				.map(entry -> new PriceLevelDto(
-						entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
-				).toList();
+			.limit(5)
+			.sorted(Map.Entry.<BigDecimal, Queue<Order>>comparingByKey().reversed()) // 역순 정렬
+			.map(entry -> new PriceLevelDto(
+				entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
+			).toList();
 	}
 
 	// 매수 호가창 정보
 	private List<PriceLevelDto> createBidLevels() {
 		return this.buyOrders.entrySet().stream()
-				.limit(5)
-				.map(entry -> new PriceLevelDto(
-						entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
-				).toList();
+			.limit(5)
+			.map(entry -> new PriceLevelDto(
+				entry.getKey(), calculateTotalQuantity(entry.getValue()), entry.getValue().size())
+			).toList();
 	}
 
 	private BigDecimal calculateTotalQuantity(Queue<Order> orders) {
 		return orders.stream()
-				.map(Order::getRemainingQuantity) // remainingQuantity를 스트림으로 변환
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+			.map(Order::getRemainingQuantity) // remainingQuantity를 스트림으로 변환
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	// 종목별 요약 정보 조회
 	public OrderSummaryResponse getSummary() {
 		return new OrderSummaryResponse(
-				companyCode,
-				getOrderVolumeStats(sellOrders),
-				getOrderVolumeStats(buyOrders)
+			companyCode,
+			getOrderVolumeStats(sellOrders),
+			getOrderVolumeStats(buyOrders)
 		);
 	}
 
