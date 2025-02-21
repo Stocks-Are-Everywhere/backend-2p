@@ -1,7 +1,7 @@
 package org.scoula.backend.order.service;
 
-import java.util.List;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.scoula.backend.order.controller.request.OrderRequest;
@@ -11,9 +11,8 @@ import org.scoula.backend.order.controller.response.OrderSummaryResponse;
 import org.scoula.backend.order.controller.response.TradeHistoryResponse;
 import org.scoula.backend.order.domain.Order;
 import org.scoula.backend.order.dto.OrderDto;
-import org.scoula.backend.order.service.validator.OrderValidator;
-import org.scoula.backend.order.repository.TradeHistoryRepositoryImpl;
 import org.scoula.backend.order.service.exception.MatchingException;
+import org.scoula.backend.order.service.validator.OrderValidator;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +28,7 @@ public class OrderService {
 	private final ConcurrentHashMap<String, OrderBookService> orderBooks = new ConcurrentHashMap<>();
 
 	private final SimpMessagingTemplate messagingTemplate;
+
 	private final TradeHistoryService tradeHistoryService;
 
 	// 지정가 주문
@@ -48,15 +48,16 @@ public class OrderService {
 	private void processOrder(final Order order) throws MatchingException {
 		final OrderBookService orderBook = addOrderBook(order.getCompanyCode());
 		orderBook.received(order);
-		final OrderBookResponse response = orderBook.getBook();
 
 		// 웹소켓 보내기
+		final OrderBookResponse response = orderBook.getBook();
 		broadcastOrderBookUpdate(response.companyCode(), response);
 	}
 
 	// 종목별 주문장 생성, 이미 존재할 경우 반환
 	public OrderBookService addOrderBook(final String companyCode) {
-		return orderBooks.computeIfAbsent(companyCode, k -> new OrderBookService(companyCode, tradeHistoryService));
+		return orderBooks.computeIfAbsent(companyCode, k ->
+				new OrderBookService(companyCode, tradeHistoryService));
 	}
 
 	// 주문 발생 시 호가창 업데이트 브로드캐스트
@@ -65,10 +66,10 @@ public class OrderService {
 	}
 
 	// 웹소켓 종목별 호가창 생성
-	public OrderBookResponse getOrderBook(final String code) {
-		final OrderBookService orderBook = addOrderBook(code);
-		return orderBook.getBook();
-	}
+	// public OrderBookResponse getOrderBook(final String code) {
+	// 	final OrderBookService orderBook = addOrderBook(code);
+	// 	return orderBook.getBook();
+	// }
 
 	// JSON 종목별 주문장 스냅샷 생성
 	public OrderSnapshotResponse getSnapshot(final String companyCode) {
