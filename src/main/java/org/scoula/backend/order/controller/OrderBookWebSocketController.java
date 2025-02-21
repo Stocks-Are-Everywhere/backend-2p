@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/ws")
 @RequiredArgsConstructor
 public class OrderBookWebSocketController {
-	
+
 	private final OrderService orderService;
 
 	// 클라이언트가 특정 종목 구독 시 초기 데이터 전송
@@ -21,4 +21,5 @@ public class OrderBookWebSocketController {
 	public OrderBookResponse subscribeOrderBook(@DestinationVariable final String code) {
 		return orderService.getOrderBook(code);
 	}
+
 }
