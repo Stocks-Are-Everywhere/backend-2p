@@ -27,7 +27,7 @@ public class KisWebSocketClient {
 	private WebSocketClient client;
 	private final String KIS_WS_URL = "ws://ops.koreainvestment.com:31000/tryitout/H0STCNT0";
 	// private final String KIS_WS_URL = "ws://localhost:31000";
-	private final String APPROVAL_KEY = "04423f5c-066c-4690-9926-f8af7587aa26";
+	private final String APPROVAL_KEY = "";
 	private WebSocketSession session;
 	private final SimpMessagingTemplate messagingTemplate;
 
