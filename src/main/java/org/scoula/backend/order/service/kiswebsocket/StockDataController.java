@@ -16,24 +16,24 @@ public class StockDataController {
 	private final StockDataService stockDataService;
 
 	@PostMapping("/subscribe/{code}")
-	public ResponseEntity<String> subscribeStock(@PathVariable String code) {
+	public ResponseEntity<String> subscribeStock(@PathVariable(name = "code") String code) {
 		try {
 			stockDataService.startStockDataStream(code);
 			return ResponseEntity.ok("Connected to stock: " + code);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("Connection failed: " + e.getMessage());
+					.body("Connection failed: " + e.getMessage());
 		}
 	}
 
 	@PostMapping("/unsubscribe/{code}")
-	public ResponseEntity<String> unsubscribeStock(@PathVariable String code) {
+	public ResponseEntity<String> unsubscribeStock(@PathVariable(name = "code") String code) {
 		try {
 			stockDataService.stopStockDataStream(code);
 			return ResponseEntity.ok("Disconnected from stock: " + code);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-				.body("Disconnection failed: " + e.getMessage());
+					.body("Disconnection failed: " + e.getMessage());
 		}
 	}
 }

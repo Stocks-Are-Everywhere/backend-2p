@@ -1,13 +1,19 @@
 package org.scoula.backend.order.service.kiswebsocket;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.json.simple.JSONObject;
+import org.scoula.backend.order.controller.response.TradeHistoryResponse;
+import org.scoula.backend.order.service.TradeHistoryService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHandler;
@@ -27,14 +33,18 @@ public class KisWebSocketClient {
 	private WebSocketClient client;
 	private final String KIS_WS_URL = "ws://ops.koreainvestment.com:31000/tryitout/H0STCNT0";
 	// private final String KIS_WS_URL = "ws://localhost:31000";
-	private final String APPROVAL_KEY = "";
+	private final String APPROVAL_KEY = "0e50445d-dbe2-415c-a77b-1efe3462ade9";
 	private WebSocketSession session;
 	private final SimpMessagingTemplate messagingTemplate;
 
+	private final TradeHistoryService tradeHistoryService;
+
+	@Transactional
 	public void connect(String stockCode) {
 		client = new StandardWebSocketClient();
 
 		WebSocketHandler handler = new WebSocketHandler() {
+
 			@Override
 			public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 				log.info("Connected to KIS WebSocket server");
@@ -46,7 +56,10 @@ public class KisWebSocketClient {
 			public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
 				try {
 					String payload = (String)message.getPayload();
+
+					// 로그 주체
 					log.info(payload);
+					// log.info("여기서 시작됨");
 
 					// 연결 확인 응답 메시지인지 확인
 					if (payload.startsWith("{")) {
@@ -56,8 +69,20 @@ public class KisWebSocketClient {
 					}
 
 					// 실제 주식 데이터 처리
-					StockData stockData = parseKisData(payload);
-					messagingTemplate.convertAndSend("/topic/stockdata/" + stockCode, stockData);
+					final StockData stockData = parseKisData(payload);
+					final TradeHistoryResponse response = TradeHistoryResponse.builder()
+							// .id(1L)
+							.companyCode(stockCode)
+							.sellOrderId(1L)
+							.buyOrderId(2L)
+							.price(BigDecimal.valueOf(stockData.getCurrentPrice()))
+							.quantity(BigDecimal.valueOf(stockData.getAccVolume()))
+							.tradeTime(stockData.getTime())
+							.build();
+
+					tradeHistoryService.sendForKI(response, stockData);
+
+					// messagingTemplate.convertAndSend("/topic/stockdata/" + stockCode, stockData);
 				} catch (Exception e) {
 					log.error("Error handling message: {}", e.getMessage());
 				}
@@ -135,9 +160,28 @@ public class KisWebSocketClient {
 			String[] fields = sections[3].split("\\^");
 			StockData data = new StockData();
 
+			// 기본 정보 설정
 			try {
-				// 기본 정보 설정
-				data.setTime(fields[1]);
+				// 날짜 정보 파싱
+				// 현재 날짜 가져오기 (체결 시간은 당일 데이터만 제공)
+				LocalDate today = LocalDate.now();
+
+				// 시간 파싱
+				String hour = fields[1].substring(0, 2);
+				String minute = fields[1].substring(2, 4);
+				String second = fields[1].substring(4, 6);
+
+				// LocalDateTime 생성
+				LocalDateTime time = LocalDateTime.of(
+						today.getYear(),
+						today.getMonth(),
+						today.getDayOfMonth(),
+						Integer.parseInt(hour),
+						Integer.parseInt(minute),
+						Integer.parseInt(second)
+				);
+
+				data.setTime(time);
 
 				// 숫자 데이터 파싱 시 DecimalFormat 사용
 				DecimalFormat df = new DecimalFormat("#.##");

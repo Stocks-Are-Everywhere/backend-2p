@@ -3,6 +3,7 @@ package org.scoula.backend.order.service.kiswebsocket;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.scoula.backend.order.service.TradeHistoryService;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 public class StockDataService {
 	private final KisWebSocketClient kisWebSocketClient;
 	private Map<String, Boolean> activeSubscriptions = new ConcurrentHashMap<>();
+
+	private final TradeHistoryService tradeHistoryService;
 
 	public void startStockDataStream(String stockCode) {
 		if (!activeSubscriptions.containsKey(stockCode)) {
