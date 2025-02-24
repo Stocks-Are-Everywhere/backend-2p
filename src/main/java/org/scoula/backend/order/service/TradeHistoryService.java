@@ -16,10 +16,10 @@ import org.scoula.backend.order.dto.CandleDto;
 import org.scoula.backend.order.dto.ChartResponseDto;
 import org.scoula.backend.order.dto.ChartUpdateDto;
 import org.scoula.backend.order.repository.TradeHistoryRepositoryImpl;
+import org.scoula.backend.order.service.kiswebsocket.StockData;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -36,41 +36,38 @@ public class TradeHistoryService {
 	private static final int MAX_TRADE_HISTORY = 1000; // 종목당 최대 보관 거래 수
 	private static final int CANDLE_KEEP_NUMBER = 30; // 캔들 데이터 보관 개수
 
-	@PostConstruct
-	public void initialize() {
-		// 초기 데이터 구조 설정
-		recentTradesMap.put("005930", new ConcurrentLinkedQueue<>());
-		candleMap.put("005930", new ArrayList<>());
+	// @PostConstruct
+	// public void initialize() {
+	// 	// 초기 데이터 구조 설정
+	// 	recentTradesMap.put("005930", new ConcurrentLinkedQueue<>());
+	// 	candleMap.put("005930", new ArrayList<>());
+	//
+	// 	// 초기 캔들 생성 (30개)
+	// 	createInitialCandles();
+	// }
 
-		// 초기 캔들 생성 (30개)
-		createInitialCandles();
-	}
-
-	private void createInitialCandles() {
-		long now = Instant.now().getEpochSecond();
-		long baseTime = now - (now % 15); // 15초 간격
-
-		for (String symbol : recentTradesMap.keySet()) {
-			List<CandleDto> candles = new ArrayList<>();
-			double basePrice = 70000; // 초기 가격
-
-			// 최근 30개의 캔들 생성
-			for (int i = 1; i >= 0; i--) {
-				long candleTime = baseTime - (i * 15);
-				candles.add(CandleDto.builder()
-						.time(candleTime)
-						.open(basePrice)
-						.high(basePrice)
-						.low(basePrice)
-						.close(basePrice)
-						.volume(0)
-						.build());
-
-			}
-
-			candleMap.put(symbol, candles);
-		}
-	}
+	// private void createInitialCandles() {
+	// 	long now = Instant.now().getEpochSecond();
+	// 	long baseTime = now - (now % 15); // 15초 간격
+	//
+	// 	for (String symbol : recentTradesMap.keySet()) {
+	// 		List<CandleDto> candles = new ArrayList<>();
+	// 		double basePrice = 70000; // 초기 가격
+	//
+	// 		// 최근 30개의 캔들 생성
+	// 		long candleTime = baseTime - (1 * 15);
+	// 		candles.add(CandleDto.builder()
+	// 				.time(candleTime)
+	// 				.open(basePrice)
+	// 				.high(basePrice)
+	// 				.low(basePrice)
+	// 				.close(basePrice)
+	// 				.volume(0)
+	// 				.build());
+	//
+	// 		candleMap.put(symbol, candles);
+	// 	}
+	// }
 
 	public void updateCandles(String symbol) {
 		List<CandleDto> existingCandles = candleMap.get(symbol);
@@ -96,14 +93,6 @@ public class TradeHistoryService {
 					.build();
 
 			existingCandles.add(newCandle);
-
-			// 최대 30개 유지
-			if (existingCandles.size() > CANDLE_KEEP_NUMBER) {
-				existingCandles = existingCandles.subList(
-						existingCandles.size() - CANDLE_KEEP_NUMBER,
-						existingCandles.size()
-				);
-			}
 		} else {
 			CandleDto prevCandle = existingCandles.get(existingCandles.size() - 1);
 			CandleDto nextCandle = CandleDto.builder()
@@ -116,14 +105,61 @@ public class TradeHistoryService {
 					.build();
 
 			existingCandles.add(nextCandle);
+		}
 
-			// 최대 30개 유지
-			if (existingCandles.size() > CANDLE_KEEP_NUMBER) {
-				existingCandles = existingCandles.subList(
-						existingCandles.size() - CANDLE_KEEP_NUMBER,
-						existingCandles.size()
-				);
-			}
+		// 캔들 목록 크기 제한 (30개)
+		if (existingCandles.size() > CANDLE_KEEP_NUMBER) {
+			existingCandles = new ArrayList<>(
+					existingCandles.subList(existingCandles.size() - CANDLE_KEEP_NUMBER, existingCandles.size())
+			);
+		}
+
+		candleMap.put(symbol, existingCandles);
+	}
+
+	public void updateCandlesForKI(final String symbol, final StockData stockData) {
+		List<CandleDto> existingCandles = candleMap.get(symbol);
+		if (existingCandles == null) {
+			existingCandles = new ArrayList<>();
+		}
+
+		long now = Instant.now().getEpochSecond();
+		long currentCandleTime = now - (now % 15);
+
+		// 현재 진행 중인 캔들이 없거나 새로운 캔들을 만들어야 하는 경우
+		// existingCandles.get(existingCandles.size() - 1).getTime() < currentCandleTime
+		if (existingCandles.isEmpty()) {
+
+			// 새 캔들 추가
+			CandleDto newCandle = CandleDto.builder()
+					.time(currentCandleTime)
+					.open(getLastPrice(symbol))
+					.high(getLastPrice(symbol))
+					.low(getLastPrice(symbol))
+					.close(getLastPrice(symbol))
+					.volume(0)
+					.build();
+
+			existingCandles.add(newCandle);
+		} else {
+			CandleDto prevCandle = existingCandles.get(existingCandles.size() - 1);
+			CandleDto nextCandle = CandleDto.builder()
+					.time(currentCandleTime)
+					.open(prevCandle.getClose())
+					.high(prevCandle.getClose())
+					.low(prevCandle.getClose())
+					.close(prevCandle.getClose())
+					.volume(0)
+					.build();
+
+			existingCandles.add(nextCandle);
+		}
+
+		// 캔들 목록 크기 제한 (30개)
+		if (existingCandles.size() > CANDLE_KEEP_NUMBER) {
+			existingCandles = new ArrayList<>(
+					existingCandles.subList(existingCandles.size() - CANDLE_KEEP_NUMBER, existingCandles.size())
+			);
 		}
 
 		candleMap.put(symbol, existingCandles);
@@ -132,7 +168,7 @@ public class TradeHistoryService {
 	private double getLastPrice(String symbol) {
 		ConcurrentLinkedQueue<TradeHistory> trades = recentTradesMap.get(symbol);
 		if (trades == null || trades.isEmpty()) {
-			return 70000; // 기본 가격
+			return 57400; // 기본 가격
 		}
 		return trades.peek().getPrice().doubleValue();
 	}
@@ -143,6 +179,7 @@ public class TradeHistoryService {
 				Optional.empty() : Optional.of(trades.peek());
 	}
 
+	// 일반 유저용 WS Provider
 	public void saveTradeHistory(TradeHistoryResponse tradeHistoryResponse) {
 		TradeHistory tradeHistory = convertToEntity(tradeHistoryResponse);
 
@@ -153,7 +190,6 @@ public class TradeHistoryService {
 		ConcurrentLinkedQueue<TradeHistory> trades =
 				recentTradesMap.computeIfAbsent(tradeHistory.getCompanyCode(),
 						k -> new ConcurrentLinkedQueue<>());
-
 		trades.offer(tradeHistory);
 
 		// 최대 개수 유지
@@ -166,9 +202,10 @@ public class TradeHistoryService {
 		if (candles != null && !candles.isEmpty()) {
 			CandleDto currentCandle = candles.get(candles.size() - 1);
 
+			// 하나의 캔들에 대해 불변성을 보장하기위해 변경된 값으로 생성 후 대치
 			CandleDto updatedCandle = CandleDto.builder()
 					.time(currentCandle.getTime())
-					.open(currentCandle.getClose())
+					.open(currentCandle.getOpen())
 					.high(Math.max(currentCandle.getHigh(), tradeHistory.getPrice().doubleValue()))
 					.low(Math.min(currentCandle.getLow(), tradeHistory.getPrice().doubleValue()))
 					.close(tradeHistory.getPrice().doubleValue())
@@ -183,6 +220,56 @@ public class TradeHistoryService {
 		ChartUpdateDto updateDto = ChartUpdateDto.builder()
 				.price(tradeHistory.getPrice().doubleValue())
 				.volume(tradeHistory.getQuantity().intValue())
+				.build();
+		messagingTemplate.convertAndSend("/topic/chart/" + tradeHistory.getCompanyCode(), updateDto);
+	}
+
+	// 한국 투자용 WS Provider
+	public void sendForKI(final TradeHistoryResponse tradeHistoryResponse, final StockData stockData) {
+		TradeHistory tradeHistory = convertToEntity(tradeHistoryResponse);
+
+		// DB 저장
+		tradeHistoryRepository.save(tradeHistory);
+
+		// 메모리에 저장
+		ConcurrentLinkedQueue<TradeHistory> trades =
+				recentTradesMap.computeIfAbsent(tradeHistory.getCompanyCode(),
+						k -> new ConcurrentLinkedQueue<>());
+		trades.offer(tradeHistory);
+
+		// 최대 개수 유지
+		while (trades.size() > MAX_TRADE_HISTORY) {
+			trades.poll();
+		}
+
+		// long second = tradeHistory.getTradeTime().getSecond();
+		// long currentCandleTime = second - (second % 15);
+
+		// 현재 캔들 업데이트
+		List<CandleDto> candles = candleMap.get(tradeHistory.getCompanyCode());
+		if (candles != null && !candles.isEmpty()) {
+			CandleDto currentCandle = candles.get(candles.size() - 1);
+
+			// 하나의 캔들에 대해 불변성을 보장하기위해 변경된 값으로 생성 후 대치
+			CandleDto updatedCandle = CandleDto.builder()
+					.time(currentCandle.getTime())
+					.open(currentCandle.getOpen())
+					.high(Math.max(currentCandle.getHigh(), tradeHistory.getPrice().doubleValue()))
+					.low(Math.min(currentCandle.getLow(), tradeHistory.getPrice().doubleValue()))
+					.close(tradeHistory.getPrice().doubleValue())
+					.volume(currentCandle.getVolume() + tradeHistory.getQuantity().intValue())
+					.build();
+
+			candles.set(candles.size() - 1, updatedCandle);
+			candleMap.put(tradeHistory.getCompanyCode(), candles);
+		}
+
+		CandleDto updatedCandle = candles.get(candles.size() - 1);
+
+		// WebSocket으로 실시간 데이터 전송
+		ChartUpdateDto updateDto = ChartUpdateDto.builder()
+				.price(updatedCandle.getClose())
+				.volume(updatedCandle.getVolume())
 				.build();
 		messagingTemplate.convertAndSend("/topic/chart/" + tradeHistory.getCompanyCode(), updateDto);
 	}
