@@ -1,73 +1,64 @@
-<h1>TEAM 2</h1>
+# TEAM 2
 
-<br>
+## 진행 상황
+- 코드 리팩토링을 통한 품질 개선 진행
 
-<h1>1. 진행 상황</h1>
-<p>현재 각 팀원들이 개별 레포지토리에서 기능을 구현 중입니다. 기능 구현이 완료되면 메인 레포지토리에 병합될 예정입니다.</p>
+## 프로젝트 구조
+```
+src
+├─main
+│  ├─java
+│  │  └─org
+│  │      └─scoula
+│  │          └─backend
+│  │              ├─global
+│  │              │  ├─config
+│  │              │  └─entity
+│  │              ├─member
+│  │              │  ├─controller
+│  │              │  │  ├─request
+│  │              │  │  └─response
+│  │              │  ├─domain
+│  │              │  ├─dto
+│  │              │  ├─repository
+│  │              │  └─service
+│  │              └─order
+│  │                  ├─controller
+│  │                  │  ├─request
+│  │                  │  └─response
+│  │                  ├─domain
+│  │                  ├─dto
+│  │                  ├─repository
+│  │                  └─service
+│  │                      ├─exception
+│  │                      ├─kiswebsocket
+│  │                      ├─simulator
+│  │                      └─validator
+│  └─resources
+└─test
+    └─java
+        └─org
+            └─scoula
+                └─backend
+```
 
-<br>
+## 주요 구현 내용
 
-<h1>2. Project Structure (프로젝트 구조)</h1>
-<pre>
-└─src
-    ├─main
-    │  ├─java
-    │  │  └─org
-    │  │      └─scoula
-    │  │          └─backend
-    │  │              ├─global
-    │  │              │  ├─config
-    │  │              │  └─entity
-    │  │              ├─member
-    │  │              │  ├─controller
-    │  │              │  │  ├─request
-    │  │              │  │  └─response
-    │  │              │  ├─domain
-    │  │              │  ├─dto
-    │  │              │  ├─repository
-    │  │              │  └─service
-    │  │              └─order
-    │  │                  ├─controller
-    │  │                  │  ├─request
-    │  │                  │  └─response
-    │  │                  ├─domain
-    │  │                  ├─dto
-    │  │                  ├─repository
-    │  │                  └─service
-    │  │                      ├─customqueue
-    │  │                      └─websocket
-    │  └─resources
-    └─test
-        └─java
-            └─org
-                └─scoula
-                    └─backend
-</pre>
+### OrderBookService
+- 지정가/시장가 주문 처리 로직
+- 매수/매도 주문 매칭 알고리즘
+- 호가창 생성 및 관리
 
-<br>
+### TradeHistoryService
+- 거래 내역 저장 및 조회
+- 캔들 차트 데이터 생성
+- 실시간 차트 업데이트
 
-<h1>3. 개발 현황</h1>
+### KisWebSocketService
+- 한국투자증권 API 연동
+- 실시간 주식 데이터 수신 및 처리
 
-<h2>기능 개발</h2>
-<ul>
-    <li>각 팀원이 개별 레포지토리에서 담당 기능을 개발 중</li>
-    <li>기능 완성 후 메인 레포지토리로 병합 예정</li>
-</ul>
-
-<h2>구현 예정 기능</h2>
-<ul>
-    <li>Member 관련 기능</li>
-    <li>Order 관련 기능</li>
-    <li>WebSocket을 활용한 실시간 통신</li>
-    <li>Custom Queue 구현</li>
-</ul>
-
-<br>
-
-<h1>4. 향후 계획</h1>
-<ul>
-    <li>개별 기능 구현 완료</li>
-    <li>코드 리뷰 및 테스트</li>
-    <li>메인 레포지토리 병합</li>
-    <li>통합 테스트 진행</li>
-</ul>
+## 다음 작업 계획
+- 코드 리팩토링 완료
+- 단위 테스트 작성
+- 기능 통합 및 테스트
