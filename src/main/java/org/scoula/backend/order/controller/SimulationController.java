@@ -16,6 +16,7 @@ public class SimulationController {
 
 	private final OrderSimulationService orderSimulationService;
 
+	//-------------------------- 싱글
 	@PostMapping("single/start")
 	public ResponseEntity<String> startSingleSimulation() {
 		orderSimulationService.startSingleSimulation();
@@ -28,15 +29,17 @@ public class SimulationController {
 		return ResponseEntity.ok("Single simulation stopped");
 	}
 
+	//--------------------------- 멀티
+
 	@PostMapping("multi/start")
 	public ResponseEntity<String> startMultiSimulation() {
 		orderSimulationService.startMultiSimulation();
 		return ResponseEntity.ok("Multi simulation started");
 	}
 
-	// @PostMapping("multi/stop")
-	// public ResponseEntity<String> stopMultiSimulation() {
-	// 	orderSimulationService.stopSingleSimulation();
-	// 	return ResponseEntity.ok("Multi simulation stopped");
-	// }
+	@PostMapping("multi/stop")
+	public ResponseEntity<String> stopMultiSimulation() {
+		orderSimulationService.stopSingleSimulation();
+		return ResponseEntity.ok("Multi simulation stopped");
+	}
 }

@@ -1,5 +1,6 @@
-package org.scoula.backend.order.service.kiswebsocket;
+package org.scoula.backend.order.controller;
 
+import org.scoula.backend.order.service.kiswebsocket.StockDataService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/stock")
 @RequiredArgsConstructor
-public class StockDataController {
+public class KisController {
 	private final StockDataService stockDataService;
 
 	@PostMapping("/subscribe/{code}")
@@ -22,7 +23,7 @@ public class StockDataController {
 			return ResponseEntity.ok("Connected to stock: " + code);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Connection failed: " + e.getMessage());
+				.body("Connection failed: " + e.getMessage());
 		}
 	}
 
@@ -33,7 +34,7 @@ public class StockDataController {
 			return ResponseEntity.ok("Disconnected from stock: " + code);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Disconnection failed: " + e.getMessage());
+				.body("Disconnection failed: " + e.getMessage());
 		}
 	}
 }
