@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class KisWebSocketService {
 	// 상수 정의
 	private static final String KIS_WS_URL = "ws://ops.koreainvestment.com:31000/tryitout/H0STCNT0";
-	private static final String APPROVAL_KEY = "0e50445d-dbe2-415c-a77b-1efe3462ade9";
+	private static final String APPROVAL_KEY = "";
 	private static final String TR_ID = "H0STCNT0";
 	private static final String CUSTOMER_TYPE = "P";
 	private static final String TR_TYPE = "1";
