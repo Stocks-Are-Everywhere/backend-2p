@@ -57,19 +57,13 @@ public class OrderService {
 	// 종목별 주문장 생성, 이미 존재할 경우 반환
 	public OrderBookService addOrderBook(final String companyCode) {
 		return orderBooks.computeIfAbsent(companyCode, k ->
-				new OrderBookService(companyCode, tradeHistoryService));
+			new OrderBookService(companyCode, tradeHistoryService));
 	}
 
 	// 주문 발생 시 호가창 업데이트 브로드캐스트
 	private void broadcastOrderBookUpdate(final String code, final OrderBookResponse orderBook) {
 		messagingTemplate.convertAndSend("/topic/orderbook/" + code, orderBook);
 	}
-
-	// 웹소켓 종목별 호가창 생성
-	// public OrderBookResponse getOrderBook(final String code) {
-	// 	final OrderBookService orderBook = addOrderBook(code);
-	// 	return orderBook.getBook();
-	// }
 
 	// JSON 종목별 주문장 스냅샷 생성
 	public OrderSnapshotResponse getSnapshot(final String companyCode) {
