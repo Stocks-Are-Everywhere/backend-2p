@@ -9,17 +9,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/chart")
+@Tag(name = "차트 초기 데이터 API", description = "차트 생성시 초기 데이터를 보내주는 컨트롤러 입니다.")
 @RequiredArgsConstructor
 @Slf4j
 public class ChartRestController {
 
 	private final TradeHistoryService tradeHistoryService;
 
+	@Operation(summary = "차트 초기 데이터 조회")
 	@GetMapping("/{symbol}/history")
 	public ResponseEntity<ChartResponseDto> getChartHistory(@PathVariable("symbol") String symbol) {
 		try {
