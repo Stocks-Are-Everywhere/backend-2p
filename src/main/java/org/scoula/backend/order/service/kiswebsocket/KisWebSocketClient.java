@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 import org.json.simple.JSONObject;
 import org.scoula.backend.order.controller.response.TradeHistoryResponse;
+import org.scoula.backend.order.service.OrderService;
 import org.scoula.backend.order.service.TradeHistoryService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -33,11 +34,12 @@ public class KisWebSocketClient {
 	private WebSocketClient client;
 	private final String KIS_WS_URL = "ws://ops.koreainvestment.com:31000/tryitout/H0STCNT0";
 	// private final String KIS_WS_URL = "ws://localhost:31000";
-	private final String APPROVAL_KEY = "0e50445d-dbe2-415c-a77b-1efe3462ade9";
+	private final String APPROVAL_KEY = "";
 	private WebSocketSession session;
 	private final SimpMessagingTemplate messagingTemplate;
 
 	private final TradeHistoryService tradeHistoryService;
+	private final OrderService orderService;
 
 	@Transactional
 	public void connect(String stockCode) {
@@ -96,6 +98,13 @@ public class KisWebSocketClient {
 			@Override
 			public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) {
 				log.info("Connection closed: {}", closeStatus);
+				// 1009 에러(메시지 크기 초과) 또는 다른 연결 문제 발생 시 재연결
+				if (closeStatus.getCode() == 1009 ||
+						closeStatus.getCode() != 1000) { // 1000은 정상 종료) { // 1000은 정상 종료
+
+					log.info("Connection closed with code {}, scheduling reconnect", closeStatus.getCode());
+					scheduleReconnect(stockCode);
+				}
 			}
 
 			@Override
@@ -110,6 +119,11 @@ public class KisWebSocketClient {
 			log.error("Failed to connect to KIS WebSocket server", e);
 			throw new RuntimeException("WebSocket connection failed", e);
 		}
+	}
+
+	private void scheduleReconnect(String stockCode) {
+		log.info("재연결 진행");
+		connect(stockCode);
 	}
 
 	private void sendSubscribeMessage(WebSocketSession session, String stockCode) throws IOException {

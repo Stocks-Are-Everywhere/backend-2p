@@ -6,11 +6,13 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequiredArgsConstructor
+@Tag(name = "차트 WebSocket API", description = "초기 데이터를 기반으로 15초 단위 새로운 캔들을 전달하는 컨드롤러 입니다.")
 @Slf4j
 public class StockWebSocketController {
 
